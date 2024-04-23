@@ -1,0 +1,10 @@
+version: '1'
+services:
+  raggy:
+    image: raggy:latest
+    build: ./app
+    command: chainlit run app/chatbot.py
+    volumes: 
+      - ./app/:/app/app
+    ports:
+      - 8000:8000
