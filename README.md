@@ -28,6 +28,9 @@ To get started with Raggy, follow these steps:
 4. Start the app: `chainlit run app/chatbot.py`
 5. Open the app in your browser and start chatting with Raggy!
 
+## Hugging Face Spaces
+
+Raggy is deployed on [Hugging Face Spaces](https://huggingface.co/spaces/naaufal/raggy)
 
 ## Acknowledgments 🙏
 
