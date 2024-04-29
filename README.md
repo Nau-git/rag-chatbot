@@ -1,4 +1,4 @@
-# Raggy: The Prompt Engineering Guru 🧙‍♂️🪄
+# Raggy: The RAG Chatbot 🤖🪄
 
 Welcome to my second llm-powered project where I build a simple RAG (Retrieval-Augmented Generation) chatbot. I call the chatbot "Raggy". It is designed to answer questions about prompt engineering.
 
@@ -30,7 +30,7 @@ To get started with Raggy, follow these steps:
 
 Raggy is deployed on [Hugging Face Spaces](https://huggingface.co/spaces/naaufal/raggy)
 
-![preview](https://github.com/Nau-git/rag-chatbot/blob/main/image/raggy.png)
+![preview](https://github.com/Nau-git/rag-chatbot/blob/main/images/raggy.png)
 
 ## Resources 📚
 
