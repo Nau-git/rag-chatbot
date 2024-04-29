@@ -1,12 +1,10 @@
 # Raggy: The Prompt Engineering Guru 🧙‍♂️🪄
 
-Welcome to my second llm-powered project. Introducing Raggy, your friendly neighborhood RAG (Retrieval-Augmented Generation) chatbot! 🤖 Raggy is here to help you unlock the power of language models through killer prompts. 🔥
+Welcome to my second llm-powered project where I build a simple RAG (Retrieval-Augmented Generation) chatbot. I call the chatbot "Raggy". It is designed to answer questions about prompt engineering.
 
-## About Raggy 🐶
+## Motivation ✍️
 
-Raggy is a chatbot app powered by large language model and leveraging retrieval-augmented generation technique. Its knowledge base is sourced from [promptingguide.ai](https://promptingguide.ai), a comprehensive resource on prompt engineering.
-
-Whether you're a total newbie or a seasoned pro, Raggy's got your back! 🙌 From understanding prompt structure and elements to exploring advanced techniques like few-shot learning and chain-of-thought prompting, Raggy can guide you through it all with fun and easy-to-understand explanations. 💡
+With the emergence of large language models (LLMs) like ChatGPT, one of the main challenges has been the propensity for hallucination – generating responses that contradict or lack grounding in factual information. Retrieval Augmented Generation (RAG) has been one of the most promising approaches to mitigate this issue, aiming to ground the chatbot's responses by incorporating relevant information from external sources. Developing a RAG chatbot presents an opportunity to explore techniques for enhancing the factual accuracy and grounding of LLM-based systems. Moreover, this project aligns with my keen interest in developing applications based on cutting-edge language models.
 
 ## Under the Hood 🔧
 
@@ -28,13 +26,16 @@ To get started with Raggy, follow these steps:
 4. Start the app: `chainlit run app/chatbot.py`
 5. Open the app in your browser and start chatting with Raggy!
 
-## Hugging Face Spaces
+## Hugging Face Spaces 🤗
 
 Raggy is deployed on [Hugging Face Spaces](https://huggingface.co/spaces/naaufal/raggy)
 
-## Acknowledgments 🙏
+![preview](https://github.com/Nau-git/rag-chatbot/blob/main/image/raggy.png)
 
-- [promptingguide.ai](https://promptingguide.ai) for providing the knowledge base for Raggy.
-- [Open-Source Libraries Used](CREDITS.md) for the open-source libraries and frameworks used in this project.
+## Resources 📚
 
-Let's create some prompting magic together! 🧙‍♂️🪄
+- [promptingguide.ai](https://promptingguide.ai) 
+- [Amogh Agastya's article on using Langchain for RAG](https://betterprogramming.pub/harnessing-retrieval-augmented-generation-with-langchain-2eae65926e82)
+- [List of embedding model](https://www.sbert.net/docs/pretrained_models.html)
+- [Fullstackretrieval by Greg Kamradt](https://fullstackretrieval.com)
+
