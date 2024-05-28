@@ -1,36 +1,55 @@
-import re
-import dotenv
+import re, dotenv
 import chainlit as cl
 from bs4 import BeautifulSoup
-
 from langchain_openai import ChatOpenAI
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.indexes import SQLRecordManager, index
 from langchain_community.document_loaders.recursive_url_loader import RecursiveUrlLoader
-from langchain.schema.runnable import Runnable, RunnablePassthrough, RunnableConfig
 from langchain.callbacks.base import BaseCallbackHandler
+from langchain.indexes import SQLRecordManager, index
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import StrOutputParser
+from langchain.schema.runnable import Runnable, RunnablePassthrough, RunnableConfig
 
 dotenv.load_dotenv()
 
 embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0.5)
+chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True,
+                        temperature=0.0     # setting this to 0 so that the llm gives more consistent answers
+                        )
 
+def format_docs(docs):
+    return "\n\n".join([d.page_content for d in docs])
+
+def clean_html(html_content):
+        
+    # Remove unwanted HTML tags
+    soup = BeautifulSoup(html_content, 'html.parser') 
+    cleaned_text = soup.get_text(separator=' ')
+    
+    # Remove extra whitespaces and newlines
+    cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip() 
+
+    return cleaned_text
 
 def ingest_html():
     
     url = "https://www.promptingguide.ai"
     excludes = [
+                "https://www.promptingguide.ai/techniques",
+                "https://www.promptingguide.ai/applications",
+                "https://www.promptingguide.ai/prompts",
+                "https://www.promptingguide.ai/prompts",
                 "https://www.promptingguide.ai/models",
                 "https://www.promptingguide.ai/risks",
+                "https://www.promptingguide.ai/research",
                 "https://www.promptingguide.ai/papers",
                 "https://www.promptingguide.ai/tools",
                 "https://www.promptingguide.ai/notebooks",
                 "https://www.promptingguide.ai/datasets",
                 "https://www.promptingguide.ai/readings",
+                "https://www.promptingguide.ai/course",
                 "https://www.promptingguide.ai/services",
                 # Add other exclude URLs here
     ]
@@ -39,15 +58,6 @@ def ingest_html():
     print("Loading webpages...")
     data = loader.load()
     print("Done loading!")
-
-    def clean_html(html_content):
-        # Remove unwanted HTML tags using BeautifulSoup
-        soup = BeautifulSoup(html_content, 'html.parser')
-        cleaned_text = soup.get_text(separator=' ')
-        # Remove extra whitespaces and newlines
-        cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
-
-        return cleaned_text
 
     cleaned_page_content = [clean_html(x.page_content) for x in data]
 
@@ -60,7 +70,6 @@ def ingest_html():
     print("Creating vector store...")
     doc_search = Chroma.from_documents(chunks, embedding_model)
     print("Done creating vector store!")
-
 
     namespace = "chromadb/my_documents"
     record_manager = SQLRecordManager(
@@ -82,42 +91,7 @@ def ingest_html():
 
 doc_search = ingest_html()
 
-@cl.on_chat_start
-async def on_chat_start():
-    template = """<role>Your name is Raggy, a retrieval augmented generation (RAG) chatbot developed by Naufal (https://github.com/Nau-git). \
-    You are designed to be helpful in answering queries related to prompt engineering.</role>
-    
-    Use the following context as the basis of your answer:
-
-    {context}
-
-    Say you don't know if the context don't provide enough information to answer the question. Do engage in small talks but DO NOT answer off-topic questions.
-    
-    Question: {question}
-    """
-    prompt = ChatPromptTemplate.from_template(template)
-
-    def format_docs(docs):
-        return "\n\n".join([d.page_content for d in docs])
-
-    retriever = doc_search.as_retriever()
-
-    runnable = (
-        {"context": retriever | format_docs, "question": RunnablePassthrough()}
-        | prompt
-        | chat_model
-        | StrOutputParser()
-    )
-
-    cl.user_session.set("runnable", runnable)
-
-
-@cl.on_message
-async def on_message(message: cl.Message):
-    runnable = cl.user_session.get("runnable")  # type: Runnable
-    msg = cl.Message(content="")
-
-    class PostMessageHandler(BaseCallbackHandler):
+class PostMessageHandler(BaseCallbackHandler):
         """
         Callback handler for handling the retriever and LLM processes.
         Used to post the sources of the retrieved documents as a Chainlit element.
@@ -140,6 +114,38 @@ async def on_message(message: cl.Message):
                     cl.Text(name="Sources", content=sources_text, display="inline")
                 )
 
+@cl.on_chat_start
+async def on_chat_start():
+    template = """<role>Your name is Raggy, a retrieval augmented generation (RAG) chatbot developed by Naufal (https://github.com/Nau-git). \
+    You are designed to be helpful in answering queries related to prompt engineering.</role>
+    
+    Use the following context as the basis of your answer:
+
+    {context}
+
+    Say you don't know if the context don't provide enough information to answer the question. You are allowed to engage in small talks but DO NOT answer off-topic questions.
+    
+    Question: {question}
+    """
+    prompt = ChatPromptTemplate.from_template(template)
+
+    retriever = doc_search.as_retriever()
+
+    runnable = (
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        | prompt
+        | chat_model
+        | StrOutputParser()
+    )
+
+    cl.user_session.set("runnable", runnable)
+
+
+@cl.on_message
+async def on_message(message: cl.Message):
+    runnable = cl.user_session.get("runnable")  # type: Runnable
+    msg = cl.Message(content="")
+    
     async with cl.Step(type="run", name="QA Assistant"):
         async for chunk in runnable.astream(
             message.content,
